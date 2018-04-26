@@ -1,0 +1,59 @@
+{
+    "name": "rollun-com /rollun-delovod-api-client",
+    "description": "",
+    "type": "project",
+    "homepage": "https://github.com/rollun-com/rollun-delovod-api-client",
+    "keywords": [
+        "delovod",
+        "api",
+        "delovod-client"
+    ],
+    "config": {
+        "sort-packages": true
+    },
+    "support": {
+        "issues": "https://github.com/rollun-com/rollun-delovod-api-client/issues",
+        "source": "https://github.com/rollun-com/rollun-delovod-api-client"
+    },
+    "require": {
+        "php": "^7.1",
+        "http-interop/http-middleware": "0.4.1",
+        "rollun-com/rollun-datastore": "^5.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.0.1",
+        "squizlabs/php_codesniffer": "^2.9.1",
+        "filp/whoops": "^2.1.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "rollun\\delovod\\": "src/Delovod/src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AppTest\\": "test/AppTest/"
+        }
+    },
+    "scripts": {
+        "post-create-project-cmd": [
+            "@development-enable"
+        ],
+        "development-disable": "zf-development-mode disable",
+        "development-enable": "zf-development-mode enable",
+        "development-status": "zf-development-mode status",
+        "expressive": "expressive --ansi",
+        "check": [
+            "@cs-check",
+            "@test",
+            "@analyze"
+        ],
+        "analyze": "phpstan analyze -l max -c ./phpstan.installer.neon ./src ./config",
+        "clear-config-cache": "php bin/clear-config-cache.php",
+        "cs-check": "phpcs",
+        "cs-fix": "phpcbf",
+        "serve": "php -S 0.0.0.0:8080 -t public/",
+        "test": "phpunit --colors=always",
+        "test-coverage": "phpunit --colors=always --coverage-clover clover.xml"
+    }
+}
