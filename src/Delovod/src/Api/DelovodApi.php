@@ -17,7 +17,7 @@ class DelovodApi implements DelovodApiInterface
 {
     const URL = "https://delovod.ua/api/";
 
-    const VERSION = "0.1";
+    const VERSION = "0.15";
 
     protected $key;
 
@@ -41,7 +41,7 @@ class DelovodApi implements DelovodApiInterface
         $data = $this->sendRequest($client);
 
         $this->checkResponseData($data);
-        return $data == "ok";
+        return $data['id'];
     }
 
     /**
@@ -59,7 +59,9 @@ class DelovodApi implements DelovodApiInterface
             'action' => $action,
             'params' => $params
         ];
-        $client = new Client(static::URL);
+        $client = new Client(static::URL, array_merge([
+            'timeout' => 30,
+        ], $options));
         $client->setMethod("POST");
         $client->setHeaders(['Content-Type' => 'application/x-www-form-urlencoded']);
         $rawBody = "packet=" . Serializer::jsonSerialize($packet);
@@ -81,10 +83,9 @@ class DelovodApi implements DelovodApiInterface
     {
         $response = $client->send();
         if ($response->isOk()) {
-            $data = Serializer::jsonUnserialize($response->getBody());
-            return $data;
+            return Serializer::jsonUnserialize($response->getBody());
         }
-        throw new ApiException("Response error. Status: " . $response->getStatusCode());
+        throw new ApiException('Response error. Status: ' . $response->getStatusCode());
     }
 
     /**
@@ -98,7 +99,7 @@ class DelovodApi implements DelovodApiInterface
             $message = $data['error'];
 
             if(isset($data['clientMessages'])) {
-                $message .= " ClientMessages: ";
+                $message .= ' ClientMessages: ';
                 foreach ($data['clientMessages'] as $clientMessage) {
                     $message .= $clientMessage['data'] . " ";
                 }

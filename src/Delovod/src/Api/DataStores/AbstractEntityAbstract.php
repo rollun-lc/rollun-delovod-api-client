@@ -83,23 +83,25 @@ abstract class AbstractEntityAbstract implements DataStoresInterface
     {
         $query = clone $query;
         $fields = !is_null($query->getSelect()) ?
-            array_merge($query->getSelect()->getFields(),array_keys($this->constantHeader)) : array_keys($this->constantHeader);
+            array_merge($query->getSelect()->getFields(), array_keys($this->constantHeader)) : array_keys($this->constantHeader);
         $fields = array_merge($fields, ["id"]);
-        $fields = array_combine($fields, $fields);
 
         $defFilters = [];
         foreach ($this->constantHeader as $name => $value) {
             $defFilters[] = new EqNode($name, $value);
         }
-        if(!empty($defFilters)) {
+        if (!empty($defFilters)) {
             $setedData = is_null($query->getQuery()) ? [] : [$query->getQuery()];
             $query->setQuery(new AndNode(array_merge($defFilters, $setedData)));
         }
+
         $filter = Serializer::jsonUnserialize($this->conditionBuilder->__invoke($query->getQuery()));
+        $fields = array_merge($fields, array_column($filter, 'alias'));
+        $fields = array_unique($fields);
 
         $data = $this->delovodApi->requestObjects([
             "from" => $this->type,
-            "fields" => $fields,
+            "fields" => array_combine($fields, $fields),
             "filters" => $filter
         ]);
         if (!is_null($query->getLimit())) {
@@ -170,12 +172,11 @@ abstract class AbstractEntityAbstract implements DataStoresInterface
      */
     public function create($doc, $ifExist = false)
     {
-        $this->constantHeader['id'] = $this->type;
-        $doc['header'] = isset($doc['header']) ? array_merge($this->constantHeader, $doc['header']) : [];
-        $doc['tableParts'] = isset($doc['tableParts']) ? $doc['tableParts'] : [];
-        $doc['saveType'] = isset($doc['saveType']) ? $doc['saveType'] : 0;
+        //$this->constantHeader['id'] = $this->type;
+        $doc['header'] = isset($doc['header']) ? array_merge(['id' => $this->type], $this->constantHeader, $doc['header']) : [];
+        $doc['tableParts'] = $doc['tableParts'] ?? [];
+        $doc['saveType'] = $doc['saveType'] ?? 0;
         $result = $this->delovodApi->saveObject($doc);
-        unset($this->constantHeader['id']);
         return $result;
     }
 }
